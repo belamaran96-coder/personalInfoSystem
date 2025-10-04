@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal Info System - Auth</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* VISUALLY STUNNING CSS */
+        body { font-family: 'Roboto', sans-serif; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); display: flex; justify-content: center; align-items: center; min-height: 100vh; margin: 0; }
+        .container { background-color: #ffffff; padding: 40px; border-radius: 10px; box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4); width: 100%; max-width: 400px; text-align: center; }
+        h2 { color: #1e3a8a; margin-bottom: 25px; font-weight: 700; font-size: 1.8em; }
+        input { width: 100%; padding: 12px; margin-bottom: 15px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; font-size: 1em; }
+        button { width: 100%; padding: 12px; background-color: #3b82f6; color: white; border: none; border-radius: 6px; font-size: 1.1em; font-weight: 700; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #1e3a8a; }
+        #message { margin-top: 20px; padding: 10px; border-radius: 4px; font-weight: 600; display: none; text-align: left;}
+        .success { background-color: #d1fae5; color: #065f46; }
+        .error { background-color: #fee2e2; color: #991b1b; }
+        .toggle-btn { background: none; color: #3b82f6; font-size: 0.9em; margin-top: 15px; text-decoration: underline; cursor: pointer; }
+        code { background-color: #f3f4f6; padding: 2px 4px; border-radius: 3px; font-size: 0.9em; display: block; margin-top: 10px; overflow-x: auto;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 id="form-title">System Login</h2>
+        <form id="auth-form">
+            <input type="text" id="name" placeholder="Full Name" style="display:none;">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="password" id="password" placeholder="Password" required>
+            <button type="submit" id="submit-btn">Login</button>
+        </form>
+        <div id="message"></div>
+        <button id="toggle-btn" class="toggle-btn">Need an account? Register</button>
+    </div>
+
+    <script>
+        // JAVASCRIPT: Login/Registration Logic (Simulated API Call)
+        const form = document.getElementById('auth-form');
+        const submitBtn = document.getElementById('submit-btn');
+        const toggleBtn = document.getElementById('toggle-btn');
+        const formTitle = document.getElementById('form-title');
+        const nameInput = document.getElementById('name');
+        const messageDiv = document.getElementById('message');
+        
+        let isLogin = true;
+        let loginSuccessState = false; 
+
+        // Toggles between Login and Register views
+        const updateUI = () => {
+            isLogin ? formTitle.textContent = 'System Login' : formTitle.textContent = 'New User Registration';
+            isLogin ? submitBtn.textContent = 'Login' : submitBtn.textContent = 'Register';
+            isLogin ? toggleBtn.textContent = 'Need an account? Register' : toggleBtn.textContent = 'Already have an account? Login';
+            nameInput.style.display = isLogin ? 'none' : 'block';
+            nameInput.required = !isLogin;
+            messageDiv.style.display = 'none';
+            loginSuccessState = false;
+        };
+
+        toggleBtn.addEventListener('click', () => { isLogin = !isLogin; updateUI(); });
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value;
+            
+            messageDiv.style.display = 'block';
+
+            if (isLogin) {
+                if(loginSuccessState) {
+                    // STEP 2: Navigate after the user verified success in the shell
+                    const userId = localStorage.getItem('userId') || 'SIMULATED_ID_12345'; // Ensure we have an ID
+                    const userName = localStorage.getItem('userName') || username;
+                    window.location.href = `info.html?id=${userId}&name=${encodeURIComponent(userName)}`;
+                    return;
+                }
+                
+                // --- LOGIN COMMAND GENERATION ---
+                const shellCommand = `loginUser('${username}', '${password}')`;
+                messageDiv.className = 'error';
+                messageDiv.innerHTML = `**LOGIN STEP 1/2:** Run this command in **MongoDB Shell**. If it returns <code>success: true</code>, click **Login** again to proceed.<br><code>${shellCommand}</code>`;
+                
+                // SIMULATION STEP: Set success state for the second click
+                loginSuccessState = true; 
+                localStorage.setItem('userId', 'SIMULATED_ID_12345'); // Dummy ID used in subsequent commands
+                localStorage.setItem('userName', username);
+                submitBtn.textContent = 'CLICK TO PROCEED (LOGIN SUCCESS)'; 
+                
+            } else { // Register
+                // --- REGISTRATION COMMAND GENERATION ---
+                const shellCommand = `registerUser('${username}', '${password}', '${name}')`;
+                messageDiv.className = 'success';
+                messageDiv.innerHTML = `**REGISTRATION:** Run this command in **MongoDB Shell**. After seeing <code>success: true</code>, switch to **Login** to continue.<br><code>${shellCommand}</code>`;
+            }
+        });
+
+        updateUI();
+    </script>
+</body>
+</html>

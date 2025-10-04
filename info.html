@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Personal Information System - Data Entry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        /* Styling for the 4-5 page data entry form */
+        body { font-family: 'Roboto', sans-serif; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); padding: 30px; }
+        .header { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .form-container { background: #fff; padding: 30px; border-radius: 10px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        h1 { color: #1e3a8a; font-size: 2em; margin: 0; }
+        h3 { color: #3b82f6; border-bottom: 2px solid #e0e7ff; padding-bottom: 5px; margin-top: 25px; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 700; color: #374151; }
+        input, textarea { width: 100%; padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; box-sizing: border-box; }
+        button { padding: 12px 25px; background-color: #10b981; color: white; border: none; border-radius: 6px; font-size: 1em; font-weight: 700; cursor: pointer; transition: background-color 0.3s; margin-top: 30px; }
+        button:hover { background-color: #059669; }
+        #save-message { margin-top: 20px; padding: 10px; border-radius: 4px; font-weight: 600; background-color: #d1fae5; color: #065f46; display: none; }
+        .full-width { grid-column: 1 / -1; }
+        code { background-color: #f3f4f6; padding: 2px 4px; border-radius: 3px; font-size: 0.9em; display: block; margin-top: 10px; overflow-x: auto;}
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 id="welcome-header">Personal Information System</h1>
+    </div>
+    
+    <div class="form-container">
+        <form id="info-form">
+            <h3>1. Personal Details (Basic Info)</h3>
+            <div class="grid">
+                <div><label>Date of Birth</label><input type="date" name="dob" required></div>
+                <div><label>Gender</label><input type="text" name="gender" placeholder="Male/Female/Other" required></div>
+                <div class="full-width"><label>Current Address</label><textarea name="currentAddress" rows="2" required></textarea></div>
+            </div>
+
+            <h3>2. Contact Information</h3>
+            <div class="grid">
+                <div><label>Personal Email</label><input type="email" name="email" required></div>
+                <div><label>Phone Number</label><input type="tel" name="phone" required></div>
+                <div class="full-width"><label>Emergency Contact Name</label><input type="text" name="emergencyName"></div>
+            </div>
+
+            <h3>3. Professional Status</h3>
+            <div class="grid">
+                <div><label>Highest Degree</label><input type="text" name="degree"></div>
+                <div><label>Current Employer</label><input type="text" name="employer"></div>
+                <div class="full-width"><label>Skills (Comma Separated)</label><input type="text" name="skills"></div>
+            </div>
+
+            <h3>4. Additional Notes (Medical/Other)</h3>
+            <div class="grid">
+                <div class="full-width"><label>Known Allergies/Medical Notes</label><textarea name="medicalNotes" rows="2"></textarea></div>
+                <div class="full-width"><label>Personal Goals/Notes</label><textarea name="personalGoals" rows="2"></textarea></div>
+            </div>
+            
+            <button type="submit">Save All Information to Database</button>
+        </form>
+        <div id="save-message"></div>
+    </div>
+
+    <script>
+        // JAVASCRIPT: Data Collection and Save Command Generation
+        const infoForm = document.getElementById('info-form');
+        const saveMessageDiv = document.getElementById('save-message');
+        const welcomeHeader = document.getElementById('welcome-header');
+        
+        // Get simulated user ID and Name from URL or localStorage
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('id') || localStorage.getItem('userId');
+        const userName = decodeURIComponent(params.get('name') || localStorage.getItem('userName'));
+
+        if (!userId || userId === 'null') {
+            alert("Session expired or invalid login. Redirecting to login.");
+            window.location.href = 'index.html';
+        }
+
+        welcomeHeader.textContent = `Welcome, ${userName} | Data Entry Form`;
+
+        infoForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const formData = {};
+            new FormData(infoForm).forEach((value, key) => {
+                formData[key] = value;
+            });
+            
+            // Convert data object to JSON string, escaping quotes for the Shell command
+            const dataJson = JSON.stringify(formData).replace(/"/g, '\\"'); 
+
+            // Final command to be run in the Shell
+            const shellCommand = `savePersonalInfo('${userId}', JSON.parse('${dataJson}'))`;
+            
+            saveMessageDiv.className = 'success';
+            saveMessageDiv.style.display = 'block';
+            saveMessageDiv.innerHTML = `**DATA SAVE STEP:** Run this command in **MongoDB Shell** to save all 4 pages of data:<br><code>${shellCommand}</code><br>Check <code>personal_records</code> in Compass after running!`;
+        });
+    </script>
+</body>
+</html>
